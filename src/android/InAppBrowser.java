@@ -104,6 +104,8 @@ public class InAppBrowser extends CordovaPlugin {
     private boolean hadwareBackButton = true;
     private boolean mediaPlaybackRequiresUserGesture = false;
     private boolean dismissableWithBackButton = true;
+    //added
+    private InAppChromeClient chromeClient;
 
     /**
      * Executes the request and returns PluginResult.
@@ -478,6 +480,17 @@ public class InAppBrowser extends CordovaPlugin {
         return this;
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == InAppChromeClient.Controller.FILE_SELECTED) {
+            // Chose a file from the file picker.
+            if (chromeClient != null && chromeClient.mUploadHandler != null) {
+                chromeClient.mUploadHandler.onResult(resultCode, intent);
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, intent);
+    }
+
     /**
      * Display a new browser with the specified URL.
      *
@@ -671,7 +684,9 @@ public class InAppBrowser extends CordovaPlugin {
                 inAppWebView = new WebView(cordova.getActivity());
                 inAppWebView.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
                 inAppWebView.setId(Integer.valueOf(6));
-                inAppWebView.setWebChromeClient(new InAppChromeClient(thatWebView));
+                // inAppWebView.setWebChromeClient(new InAppChromeClient(thatWebView));
+                chromeClient = new InAppChromeClient(thatWebView, InAppBrowser.this);
+                inAppWebView.setWebChromeClient(chromeClient);
                 WebViewClient client = new InAppBrowserClient(thatWebView, edittext);
                 inAppWebView.setWebViewClient(client);
                 WebSettings settings = inAppWebView.getSettings();
